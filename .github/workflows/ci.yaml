@@ -16,8 +16,7 @@ jobs:
       matrix:
         os:
           - macos-latest
-          #- ubuntu-latest
-          #- ubuntu-16.04
+          - ubuntu-16.04
           #- windows-latest
         python:
           - 3.7
@@ -25,18 +24,17 @@ jobs:
       GDC_CLIENT_ZIP: "gdc-client.zip"
     steps:
     - uses: actions/checkout@v2
-
-    # Force setup-python to rebuild Python on macOS.
-    - name: Clear cached Python
-      if: matrix.os == 'macos-latest'
-      run: |
-        rm -rf "${RUNNER_TOOL_CACHE}/Python"
     - name: Set up Python ${{ matrix.python }}
+      if: matrix.os != 'macos-latest'
       uses: actions/setup-python@v2
-      env:
-        MACOSX_DEPLOYMENT_TARGET: '10.9'
       with:
         python-version: ${{ matrix.python }}
+    - name: Download and install macOS Python ${{ matrix.python }}
+      if: matrix.os == 'macos-latest'
+      run: |
+        wget https://www.python.org/ftp/python/${{ matrix.python }}/python-${{ matrix.python }}-macosx10.9.pkg
+        sudo installer -pkg python-${{ matrix.python }}-macosx10.9.pkg -target /
+        rm python-${{ matrix.python }}-macosx10.9.pkg
     - name: Run Tests
       if: matrix.os != 'windows-latest'
       run: |
