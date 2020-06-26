@@ -40,17 +40,12 @@ jobs:
         sudo installer -pkg python-${{ matrix.python }}-macosx10.9.pkg -target /
         rm python-${{ matrix.python }}-macosx10.9.pkg
         sudo ln -fs /usr/local/bin/python3 /usr/local/bin/python
-
-        python --version
-        hash python
-        python --version
-
     - name: Run Tests
       if: matrix.os != 'windows-latest'
       run: |
         python -m pip install --upgrade pip
         python -m pip install --upgrade tox virtualenv
-        tox -e py3
+        python -m tox -e py3
     - name: Package
       env:
         GDC_CLIENT_NO_ZIP: true
