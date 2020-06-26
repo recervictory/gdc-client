@@ -5,7 +5,7 @@ on:
       - develop
       - release/**
       - hotfix/**
-      - feat/dev-245-build-binaries
+      - tmp/mac-hac
     tags:
       - "*"
 
@@ -52,5 +52,5 @@ jobs:
       shell: bash
     - uses: actions/upload-artifact@v2
       with:
-        name: ${{ env.GDC_CLIENT_ZIP }}-py${{ matrix.python }}-${{ matrix.os }}
+        name: ${{ env.GDC_CLIENT_ZIP }}-py${{ matrix.python }}-${{ matrix.os }}-TEST
         path: bin/gdc-client_*.zip
