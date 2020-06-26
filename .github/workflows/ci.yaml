@@ -30,7 +30,13 @@ jobs:
     - name: Clear cached Python
       if: matrix.os == 'macos-latest'
       run: |
+        ls -l "${RUNNER_TOOL_CACHE}"
+        ls -l "${RUNNER_TOOL_CACHE}/Python"
+        echo before
         rm -rf "${RUNNER_TOOL_CACHE}/Python/*"
+        echo after
+        ls -l "${RUNNER_TOOL_CACHE}"
+        ls -l "${RUNNER_TOOL_CACHE}/Python"
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       env:
