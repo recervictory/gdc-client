@@ -2,6 +2,9 @@
 
 set -e
 
+# TODO temp
+python --version
+
 function cleanup() {
     # get rid of the virtualenv
     echo "Cleaning up"
@@ -49,19 +52,18 @@ case $(uname -s) in
         # why does windows have to be so different?
         VENV_PATH="$VENV_NAME/Scripts/activate"
 
-        # Presumably Python3 is the only `python` in the Windows %PATH% variable
         python -m virtualenv "$VENV_NAME"
         source "$VENV_PATH"
-        pip install pywin32
+        python -m pip install pywin32
         ;;
     *Linux*)
         TARGET_ENVIRONMENT="Ubuntu"
-        python -m virtualenv "$VENV_NAME" --python=python3
+        python -m virtualenv "$VENV_NAME"
         source "$VENV_PATH"
         ;;
     *Darwin*)
         TARGET_ENVIRONMENT="OSX"
-        python -m virtualenv "$VENV_NAME" --python=python3
+        python -m virtualenv "$VENV_NAME"
         source "$VENV_PATH"
         ;;
 esac
@@ -78,10 +80,10 @@ cd bin
 echo "Building for ${TARGET_ENVIRONMENT}..."
 
 # Make sure the correct version of pyinstaller and setuptools are installed
-pip install -U "PyInstaller==3.5"
+python -m pip install -U "PyInstaller==3.5"
 
 # Ran into ModuleNotFoundError: No module named 'pkg_resources.py2_warn' with higher versions of setuptools
-pip install --upgrade 'setuptools<45.0.0'
+python -m pip install --upgrade 'setuptools<45.0.0'
 
 # Get version
 VERSION=$(python -c "
@@ -101,20 +103,29 @@ pyinstaller \
 echo "Testing produced binary..."
 ./dist/$BINARY_NAME --help
 
-# Zip dist
-echo "Zipping binary..."
-cd dist
-
 PRE_ZIP_NAME="gdc-client_${VERSION}_${TARGET_ENVIRONMENT}_x64"
 if [ -n "${DATE}" ]; then
     PRE_ZIP_NAME="gdc-client_${VERSION}_${DATE}_${TARGET_ENVIRONMENT}_x64"
 fi
 
-ZIP_NAME="$PRE_ZIP_NAME.zip"
-echo "The output zip file will be called ${ZIP_NAME}"
-compress "$ZIP_NAME" "$BINARY_NAME"
-mv "$ZIP_NAME" ..
-cd ..
+if [[ -z "$GDC_CLIENT_NO_ZIP" ]]; then
+    # Zip dist (default behavior)
+    echo "Zipping binary..."
+    cd dist
+
+    ZIP_NAME="$PRE_ZIP_NAME.zip"
+    echo "The output zip file will be called ${ZIP_NAME}"
+    compress "$ZIP_NAME" "$BINARY_NAME"
+    mv "$ZIP_NAME" ..
+    cd ..
+else
+    # No-zip dist for CI workflows that zip artifacts themselves
+    echo "NOT Zipping binary"
+    echo "The output artifact will be called ${BINARY_NAME}"
+    mv "dist/${BINARY_NAME}" .
+fi
 
 cleanup
+
+# Export the expected zip name for the final packaged artifact
 export GDC_CLIENT_ZIP="$PRE_ZIP_NAME"
