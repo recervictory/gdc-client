@@ -25,8 +25,16 @@ jobs:
       GDC_CLIENT_ZIP: "gdc-client.zip"
     steps:
     - uses: actions/checkout@v2
+
+    # Force setup-python to rebuild Python on macOS.
+    - name: Clear cached Python
+      if: matrix.os == 'macos-latest'
+      run: |
+        rm -rf "${RUNNER_TOOL_CACHE}/Python/*"
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
+      env:
+        MACOSX_DEPLOYMENT_TARGET: '10.9'
       with:
         python-version: ${{ matrix.python }}
     - name: Run Tests
